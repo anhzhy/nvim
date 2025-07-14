@@ -2,6 +2,28 @@ local function augroup(name)
     return vim.api.nvim_create_augroup(name, { clear = true })
 end
 
+-- toggle relative number on the basis of mode
+vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }, {
+    pattern = "*",
+    group = augroup,
+    callback = function()
+        if vim.o.nu and vim.api.nvim_get_mode().mode ~= "i" then
+            vim.opt.relativenumber = true
+        end
+    end,
+})
+
+vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEnter", "WinLeave" }, {
+    pattern = "*",
+    group = augroup(""),
+    callback = function()
+        if vim.o.nu then
+            vim.opt.relativenumber = false
+            vim.cmd("redraw")
+        end
+    end,
+})
+
 -- Check if we need to reload the file when it changed
 vim.api.nvim_create_autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
     group = augroup("checktime"),
@@ -122,3 +144,24 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
         vim.fn.mkdir(vim.fn.fnamemodify(file, ":p:h"), "p")
     end,
 })
+
+-- don't auto comment new line
+vim.api.nvim_create_autocmd("BufEnter", { command = [[set formatoptions-=cro]] })
+
+-- Enable spell checking for certain file types
+vim.api.nvim_create_autocmd(
+    { "BufRead", "BufNewFile" },
+    {
+        group = augroup("spell_check"),
+        pattern = { "*.txt", "*.md", "*.tex" },
+        callback = function()
+            vim.opt.spell = true
+            vim.opt.spelllang = "en"
+        end,
+    }
+)
+
+-- auto close brackets
+vim.api.nvim_create_autocmd("FileType", { pattern = "man", command = [[nnoremap <buffer><silent> q :quit<CR>]] })
+
+vim.api.nvim_command("autocmd VimResized * wincmd =")

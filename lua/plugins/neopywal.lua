@@ -5,8 +5,7 @@ return {
     priority = 1000,
     opts = {},
     config = function()
-        local neopywal = require("neopywal")
-        neopywal.setup({
+        require("neopywal").setup({
             use_wallust = true,
         })
         vim.cmd.colorscheme("neopywal")
